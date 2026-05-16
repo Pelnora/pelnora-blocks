@@ -1,0 +1,345 @@
+# Pelnora Blocks — block metadata
+# Block: umowa-o-swiadczenie-uslug-b2b-prosta
+# Schema version: 1
+# Spec: https://github.com/pelnora/pelnora-blocks/blob/main/SCHEMA.md (planned)
+
+name: "Umowa o świadczenie usług B2B (uproszczona)"
+slug: "umowa-o-swiadczenie-uslug-b2b-prosta"
+category: "B2B"
+version: 1
+created: "2026-05-16"
+author: "Przemysław Kołakowski"
+license: "Apache-2.0"
+
+tags:
+  - "umowa o świadczenie usług"
+  - "B2B"
+  - "JDG"
+  - "art. 750 KC"
+  - "freelancer"
+  - "podstawowa"
+  - "uproszczona"
+
+legal_basis:
+  - "art. 750 KC w zw. z art. 734 i nast. KC (umowa o świadczenie usług)"
+  - "art. 22 § 1 KP (klauzula B2B anti-reklasyfikacji)"
+  - "art. 50 ustawy o prawie autorskim i prawach pokrewnych (pola eksploatacji, wariant B/C)"
+
+privilege_default: "Y"
+estimated_complexity: 2  # 1-5
+estimated_use_frequency: "weekly"
+
+description: |
+  Uproszczona umowa o świadczenie usług B2B (art. 750 KC) między dwoma podmiotami
+  gospodarczymi — typowo JDG → spółka lub spółka → spółka. Wariant dla 1-osobowego
+  freelancera świadczącego usługi w ramach prowadzonej działalności gospodarczej.
+
+  NIE jest to umowa zlecenia w sensie oskładkowanej formy cywilnoprawnej dla osoby
+  fizycznej nieprowadzącej działalności (art. 734 KC). Dla tej formy użyj osobnego
+  boilerplate "umowa-zlecenia-cywilna.docx" (planowane).
+
+  Zawiera klauzule B2B chroniące przed reklasyfikacją na umowę o pracę
+  (samodzielność, własne ryzyko, brak podporządkowania, art. 22 § 1 KP explicit
+  excluded).
+
+# === SELECTORY (wybór wariantu przy insert) ===
+
+selectors:
+  - id: WYNAGRODZENIE_BLOK
+    label: "Sposób wynagrodzenia"
+    location: "§2 ust. 5"
+    required: true
+    options:
+      - value: "ryczalt"
+        label: "Ryczałt miesięczny (stała kwota)"
+        triggers_placeholders: [KWOTA_RYCZALT, DZIEN_FAKTUROWANIA]
+      - value: "godzinowe"
+        label: "Stawka godzinowa + raport czasu"
+        triggers_placeholders: [STAWKA_GODZINOWA, DZIEN_RAPORTU]
+      - value: "za_zlecenie"
+        label: "Za wykonanie konkretnego zlecenia (jednorazowo)"
+        triggers_placeholders: [KWOTA_ZA_ZLECENIE]
+
+  - id: PRAWA_AUTORSKIE_BLOK
+    label: "Prawa autorskie i własność intelektualna"
+    location: "§6"
+    required: true
+    options:
+      - value: "brak"
+        label: "Brak utworów (usługi nie kreatywne)"
+        triggers_placeholders: []
+      - value: "przeniesienie"
+        label: "Pełne przeniesienie praw majątkowych"
+        triggers_placeholders: []
+      - value: "licencja"
+        label: "Licencja niewyłączna"
+        triggers_placeholders:
+          [POLA_EKSPLOATACJI_LICENCJA, TERYTORIUM_LICENCJA, OKRES_LICENCJA, SUBLICENCJA_TAK_NIE]
+
+# === PLACEHOLDERY (uzupełniane przy insert) ===
+# Note: niektóre IDs używają legacy nazewnictwa (ZLECENIODAWCA_*, ZLECENIOBIORCA_*)
+# zamiast spójnego USLUGOBIORCA_*/USLUGODAWCA_*. Aliases mapują na docelowe nazwy.
+# Find&Replace zaplanowany w v2 refactor.
+
+placeholders:
+  # --- KOMPARYCJA ---
+  - id: NUMER_UMOWY
+    label: "Numer umowy"
+    example: "1/2026"
+    required: false
+    description: "Wewnętrzny numer ewidencyjny; opcjonalny."
+
+  - id: DATA_ZAWARCIA
+    label: "Data zawarcia umowy"
+    type: "date"
+    required: true
+
+  - id: MIEJSCE_ZAWARCIA
+    label: "Miejsce zawarcia"
+    example: "Warszawa"
+    required: true
+
+  # --- USŁUGOBIORCA (legacy IDs: ZLECENIODAWCA_*) ---
+  - id: ZLECENIODAWCA_NAZWA
+    aliases: [USLUGOBIORCA_NAZWA]
+    label: "Usługobiorca — nazwa firmy"
+    description: "Nazwa firmy bez formy prawnej (forma osobno w ZLECENIODAWCA_FORMA)."
+    required: true
+
+  - id: ZLECENIODAWCA_FORMA
+    aliases: [USLUGOBIORCA_FORMA]
+    label: "Usługobiorca — forma prawna"
+    options: ["sp. z o.o.", "S.A.", "sp. j.", "sp. k.", "sp. p.", "JDG"]
+    required: true
+
+  - id: ZLECENIODAWCA_ADRES
+    aliases: [USLUGOBIORCA_ADRES]
+    label: "Usługobiorca — pełen adres siedziby"
+    example: "ul. Marszałkowska 1, 00-001 Warszawa"
+    required: true
+
+  - id: ZLECENIODAWCA_NIP
+    aliases: [USLUGOBIORCA_NIP]
+    label: "Usługobiorca — NIP"
+    pattern: "^\\d{10}$"
+    required: true
+
+  - id: ZLECENIODAWCA_KRS
+    aliases: [USLUGOBIORCA_KRS]
+    label: "Usługobiorca — KRS"
+    pattern: "^\\d{10}$"
+    required: false
+    description: "JDG nie ma KRS — pozostaw puste lub pomiń."
+
+  - id: ZLECENIODAWCA_REPREZENTANT
+    aliases: [USLUGOBIORCA_REPREZENTANT]
+    label: "Usługobiorca — reprezentant"
+    example: "Jan Kowalski, Prezes Zarządu"
+    required: true
+
+  # --- USŁUGODAWCA (legacy IDs: ZLECENIOBIORCA_*) ---
+  - id: ZLECENIOBIORCA_FIRMA
+    aliases: [USLUGODAWCA_FIRMA]
+    label: "Usługodawca — nazwa firmy (JDG lub spółka)"
+    example: "Anna Nowak (JDG) lub Nowak Consulting sp. z o.o."
+    required: true
+
+  - id: ZLECENIOBIORCA_ADRES
+    aliases: [USLUGODAWCA_ADRES]
+    label: "Usługodawca — adres prowadzenia działalności"
+    required: true
+
+  - id: ZLECENIOBIORCA_NIP
+    aliases: [USLUGODAWCA_NIP]
+    label: "Usługodawca — NIP"
+    pattern: "^\\d{10}$"
+    required: true
+
+  # --- §1 PRZEDMIOT ---
+  - id: PRZEDMIOT_ZLECENIA
+    aliases: [PRZEDMIOT_USLUG]
+    label: "Przedmiot świadczonych usług"
+    type: "long_text"
+    example: "Świadczenie usług doradczych w zakresie marketingu cyfrowego, obejmujących analizę kampanii Google Ads i Facebook Ads, oraz rekomendacje optymalizacji budżetu reklamowego."
+    required: true
+    description: "Konkretna lista czynności. Im precyzyjniej, tym mniej ryzyka reklasyfikacji na umowę o pracę."
+
+  # --- §2 WYNAGRODZENIE ---
+  - id: TERMIN_PLATNOSCI_DNI
+    label: "Termin płatności faktury (dni od doręczenia)"
+    type: "number"
+    default: 14
+    min: 7
+    max: 60
+
+  # Wariant A: RYCZAŁT
+  - id: KWOTA_RYCZALT
+    label: "Wynagrodzenie ryczałtowe (PLN netto/miesiąc)"
+    type: "number"
+    conditional_on: { WYNAGRODZENIE_BLOK: "ryczalt" }
+    required_when_triggered: true
+
+  - id: DZIEN_FAKTUROWANIA
+    label: "Dzień miesiąca wystawiania faktury (ryczałt)"
+    type: "number"
+    default: 5
+    min: 1
+    max: 28
+    conditional_on: { WYNAGRODZENIE_BLOK: "ryczalt" }
+
+  # Wariant B: GODZINOWE
+  - id: STAWKA_GODZINOWA
+    label: "Stawka godzinowa (PLN netto/h)"
+    type: "number"
+    conditional_on: { WYNAGRODZENIE_BLOK: "godzinowe" }
+    required_when_triggered: true
+
+  - id: DZIEN_RAPORTU
+    label: "Dzień miesiąca przedłożenia raportu czasu"
+    type: "number"
+    default: 5
+    min: 1
+    max: 28
+    conditional_on: { WYNAGRODZENIE_BLOK: "godzinowe" }
+
+  # Wariant C: ZA ZLECENIE
+  - id: KWOTA_ZA_ZLECENIE
+    label: "Wynagrodzenie jednorazowe (PLN netto)"
+    type: "number"
+    conditional_on: { WYNAGRODZENIE_BLOK: "za_zlecenie" }
+    required_when_triggered: true
+
+  # --- §3 CZAS TRWANIA ---
+  - id: OKRES_UMOWY
+    label: "Czas trwania umowy"
+    type: "select_inline"
+    options:
+      - value: "okreslony"
+        label: "Czas określony (wymaga DATA_OD + DATA_DO)"
+      - value: "nieokreslony"
+        label: "Czas nieokreślony"
+    required: true
+    description: "v1: inline w §3.1 — user wykreśla nieodpowiedni wariant manualnie. v2 będzie OKRES_BLOK selectorem."
+
+  - id: DATA_OD
+    label: "Data początku obowiązywania"
+    type: "date"
+    conditional_on: { OKRES_UMOWY: "okreslony" }
+    required_when_triggered: true
+
+  - id: DATA_DO
+    label: "Data końca obowiązywania"
+    type: "date"
+    conditional_on: { OKRES_UMOWY: "okreslony" }
+    required_when_triggered: true
+
+  - id: OKRES_WYPOWIEDZENIA_DNI
+    label: "Okres wypowiedzenia (dni)"
+    type: "number"
+    default: 14
+    min: 7
+    max: 90
+
+  # --- §5 POUFNOŚĆ ---
+  - id: KARA_UMOWNA_POUFNOSC
+    label: "Kara umowna za naruszenie poufności (PLN)"
+    type: "number"
+    default: 10000
+    description: "Per case, nie cap. Pamiętaj o proporcjonalności do wartości umowy (zwykle ~10% wartości rocznej)."
+
+  # --- §6 PRAWA AUTORSKIE (Wariant C: LICENCJA) ---
+  - id: POLA_EKSPLOATACJI_LICENCJA
+    label: "Pola eksploatacji (licencja, wariant C)"
+    type: "long_text"
+    example: "wykorzystanie wewnętrzne w działalności Usługobiorcy, modyfikacje i adaptacje, udostępnianie klientom Usługobiorcy"
+    conditional_on: { PRAWA_AUTORSKIE_BLOK: "licencja" }
+    required_when_triggered: true
+
+  - id: TERYTORIUM_LICENCJA
+    label: "Terytorium licencji"
+    example: "Rzeczpospolita Polska"
+    default: "Rzeczpospolita Polska"
+    conditional_on: { PRAWA_AUTORSKIE_BLOK: "licencja" }
+
+  - id: OKRES_LICENCJA
+    label: "Okres trwania licencji"
+    example: "5 lat od dnia zawarcia Umowy"
+    default: "bezterminowo, do odwołania"
+    conditional_on: { PRAWA_AUTORSKIE_BLOK: "licencja" }
+
+  - id: SUBLICENCJA_TAK_NIE
+    label: "Prawo do sublicencjonowania"
+    options: ["ma", "nie ma"]
+    default: "nie ma"
+    conditional_on: { PRAWA_AUTORSKIE_BLOK: "licencja" }
+
+  # --- §7 ODPOWIEDZIALNOŚĆ ---
+  - id: LIMIT_ODPOWIEDZIALNOSCI
+    label: "Opis okresu limit odpowiedzialności"
+    example: "3 miesięcy"
+    default: "3 miesięcy"
+    description: |
+      v1: docx ma hardcoded "ostatnich 3 miesięcy" w głównym tekście +
+      placeholder w nawiasie. Niespójne. v2 zostanie zrefaktorowany na
+      selector LIMIT_BLOK z wariantami (3 mies / 6 mies / wartość umowy).
+
+  - id: UBEZPIECZENIE_OC_TAK_NIE
+    label: "Wymóg ubezpieczenia OC"
+    options: ["jest", "nie jest"]
+    default: "nie jest"
+    description: |
+      v2: cały §7.4 zostanie zrefaktorowany na optional section
+      "--- OPCJONALNE: UBEZPIECZENIE OC ---" zamiast inline placeholder.
+
+  - id: SUMA_UBEZPIECZENIA_OC
+    label: "Suma ubezpieczenia OC (PLN)"
+    type: "number"
+    example: 100000
+    conditional_on: { UBEZPIECZENIE_OC_TAK_NIE: "jest" }
+    required_when_triggered: true
+
+# === NOTES (dla użytkownika prawnika) ===
+
+notes: |
+  PRZECIWWSKAZANIA:
+  - Usługodawca = osoba fizyczna BEZ działalności gospodarczej
+    → użyj "umowa-zlecenia-cywilna.docx" (z ZUS), NIE tej formy
+  - Działalność wymagająca podporządkowania (godziny pracy ustalane przez
+    Usługobiorcę, miejsce, środki Usługobiorcy) → rozważ umowę o pracę,
+    bo ryzyko reklasyfikacji jest realne
+
+  TYPOWE PUŁAPKI:
+  - Reklasyfikacja na umowę o pracę: §4 jest krytyczny, NIE wycinaj
+    klauzul o samodzielności i braku podporządkowania (art. 22 § 1 KP)
+  - Reklasyfikacja na zlecenie z ZUS: §1 ust. 2-3 + §4 muszą explicit
+    potwierdzać że Usługodawca działa jako podmiot gospodarczy na
+    własny rachunek
+  - Prawa autorskie wariant B: w v1 wynagrodzenie za przeniesienie
+    mieści się w §2. W big-ticket deals lepiej rozdzielić — może
+    podlegać innemu opodatkowaniu (50% kup)
+  - Kara umowna §5: ZUS / sąd może uznać za nadmierną jeśli >wartość
+    umowy. Zwykle bezpiecznie ~10% wartości rocznej
+  - §7 limit odpowiedzialności: wyłączenia z umyślnych + poufności są
+    standardem, nie wycinać. Bez nich ograniczenie odpowiedzialności
+    może być uznane za nieskuteczne (art. 473 § 2 KC)
+
+  RELACJA DO INNYCH BOILERPLATÓW:
+  - "umowa-zlecenia-cywilna.docx" (planowane) — forma ZUS dla osób
+    fizycznych nieprowadzących działalności (art. 734 KC)
+  - "umowa-o-swiadczenie-uslug-it.docx" (planowane) — rozszerzona
+    o SLA, źródła, repozytoria, escrow
+  - "nda-jednostronne.docx" (planowane) — pełne NDA gdy poufność
+    >2 paragrafy z §5
+  - "umowa-o-dzielo.docx" (planowane) — art. 627 KC, gdy rezultat
+    jednorazowy i kreatywny
+
+  KNOWN ISSUES v1 (do fix w v2):
+  - Placeholder IDs używają legacy nazewnictwa (ZLECENIODAWCA_*,
+    ZLECENIOBIORCA_*) zamiast spójnego USLUGOBIORCA_*, USLUGODAWCA_*.
+    Aliases mapują na docelowe. Find&Replace w docx zaplanowany.
+  - §3.1 OKRES_UMOWY inline z "niepotrzebne skreślić" → v2 selector
+    OKRES_BLOK z wariantami "określony" / "nieokreślony"
+  - §7.2 LIMIT_ODPOWIEDZIALNOSCI hardcoded "3 miesięcy" + placeholder
+    w nawiasie → v2 selector LIMIT_BLOK
+  - §7.4 ubezpieczenie OC inline → v2 optional section
+    "--- OPCJONALNE: UBEZPIECZENIE OC ---"
